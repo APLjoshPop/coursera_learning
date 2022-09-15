@@ -24,14 +24,14 @@ for line in fh:
     names[name] = names.get(name, 0) +1
     count = count +1
 
-    #Find the name in the dictoinary with the largest count
-    largest_key = None
-    largest_value = 0
-    for key,value in names.items():
-        if value > largest_value:
-            largest_key = key
-            largest_value = value
-            print (largest_key, largest_value)
+#Find the name in the dictoinary with the largest count
+largest_key = None
+largest_value = 0
+for key,value in names.items():
+    if value > largest_value:
+        largest_key = key
+        largest_value = value
+        print (largest_key, largest_value)
     
 print(names)
 print (largest_key, largest_value)
