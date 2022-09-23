@@ -44,48 +44,43 @@ from bs4 import BeautifulSoup
 import ssl
 import re
 
+
 # Ignore SSL certificate errors
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
 
 # get url
-# url = input("Enter - ")
-url = "http://py4e-data.dr-chuck.net/comments_42.html"
+url = input("Enter - ")
+#url = "http://py4e-data.dr-chuck.net/comments_42.html"
+#url = "http://py4e-data.dr-chuck.net/comments_1650518.html"
 html = urlopen(url, context=ctx).read()
 soup = BeautifulSoup(html, "html.parser")
 
-# Retrieve all of the anchor tags
-tags = soup("a")
-for tag in tags:
-    # Look at the parts of a tag
-    print("TAG:", tag)
-    print("URL:", tag.get("href", None))
-    print("Contents:", tag.contents[0])
-    print("Attrs:", tag.attrs)
+# Retrieve all of the span tags
+span_tags = soup("span")
+sum_of_integers = 0
+count = 0
 
-###
+# read each span tag
+for span_tag in span_tags:
+    #print("Span Tag:", span_tag)
+    #count number of tags found
+    count += 1
+    #convert span_tag to a string so regular expression will work on it. 
+    # @Cory is there a better place I could of done this in the code?
+    span_tag_string = str(span_tag)
+    # find number in the span tag
+    number_in_span_tag = re.findall("[0-9]+", span_tag_string)
+    #convert number_in_span_tag to an int
+    # @Cory was there a better way to convert it to an int? I wasn't able to do it directly
+    for number in number_in_span_tag:
+        span_tag_int = int(number)
+        #print(span_tag_int)
+        #sum the numbers found
+        sum_of_integers = sum_of_integers + span_tag_int
+        #print(sum_of_integers)
 
-# ##open and read file
-# file_name = input("Enter file name: ")
-# ##file_name = "regex_sum_42.txt"
-# file_handle = open(file_name, "r")
-
-# ##create variables
-# sum_of_integers = 0
-
-# ##grab each line from the file and examine with regular expression
-# for line in file_handle:
-#     regex_search_result = re.findall("[0-9]+", line)
-#     ##if regulare expression didn't find anything try again
-#     if len(regex_search_result) < 1:
-#         continue
-#     ##There may be multiple integers in regex_search_result...
-#     ##...split them out and convert them from a string to an integer
-#     for string_number in regex_search_result:
-#         integer_number = int(string_number)
-#         ##add the value of the integer to the sum
-#         sum_of_integers = sum_of_integers + integer_number
-#         # print(integer_number) ##optional to check what numbers are being found
-
-# print(sum_of_integers)
+#print the sum total
+print("Count ", count)
+print("Sum ", sum_of_integers)
