@@ -22,30 +22,32 @@ The program can be speeded up greatly by moving the commit operation outside of 
  a balance between the number of operations you execute between commits and the importance of not losing the results of 
  operations that have not yet been committed. 
 '''
-#imports
+# imports
 import sqlite3
 
-#SQLlite setup
+# SQLlite setup
 conn = sqlite3.connect('emaildb.sqlite')
 cur = conn.cursor()
 
-#If there is already a table delete it 
+# If there is already a table delete it
 cur.execute('DROP TABLE IF EXISTS Counts')
 
-#Creat a new table with colmns email and count
+# Creat a new table with colmns email and count
 cur.execute('''
 CREATE TABLE Counts (email TEXT, count INTEGER)''')
 
-#prompt user for a name for the file
+# prompt user for a name for the file
 fname = input('Enter file name: ')
 
-#if no file nae is given it will default to naming the file mbox-short.txt
-if (len(fname) < 1): fname = 'mbox-short.txt'
+# if no file nae is given it will default to naming the file mbox-short.txt
+if (len(fname) < 1):
+    fname = 'mbox-short.txt'
 
-#open the file provided
+# open the file provided
 fh = open(fname)
 for line in fh:
-    if not line.startswith('From: '): continue
+    if not line.startswith('From: '):
+        continue
     pieces = line.split()
     email = pieces[1]
     cur.execute('SELECT count FROM Counts WHERE email = ? ', (email,))
@@ -59,7 +61,10 @@ for line in fh:
     conn.commit()
 
 # https://www.sqlite.org/lang_select.html
-sqlstr = 'SELECT email, count FROM Counts ORDER BY count DESC LIMIT 10'
+# select SUM(count), substr(email, instr(email, '@') + 1) as DOMAIN from Counts GROUP BY DOMAIN ORDER BY SUM(count) DESC;
+#sqlstr = 'SELECT email, count FROM Counts ORDER BY count DESC LIMIT 10'
+sqlstr = "SELECT SUM(count), SUBSTR(email, INSTR(email, '@') +1) AS domain FROM Counts GROUP BY domain ORDER BY SUM(count) DESC"
+
 
 for row in cur.execute(sqlstr):
     print(str(row[0]), row[1])
