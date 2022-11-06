@@ -22,8 +22,10 @@ The program can be speeded up greatly by moving the commit operation outside of 
  a balance between the number of operations you execute between commits and the importance of not losing the results of 
  operations that have not yet been committed. 
 '''
+
 # imports
 import sqlite3
+import re
 
 # SQLlite setup
 conn = sqlite3.connect('emaildb.sqlite')
@@ -32,39 +34,42 @@ cur = conn.cursor()
 # If there is already a table delete it
 cur.execute('DROP TABLE IF EXISTS Counts')
 
-# Creat a new table with colmns email and count
+# Creat a new table with colmns org and count
 cur.execute('''
-CREATE TABLE Counts (email TEXT, count INTEGER)''')
+CREATE TABLE Counts (org TEXT, count INTEGER)''')
 
 # prompt user for a name for the file
 fname = input('Enter file name: ')
 
 # if no file nae is given it will default to naming the file mbox-short.txt
 if (len(fname) < 1):
-    fname = 'mbox-short.txt'
+    fname = 'mbox.txt'
 
 # open the file provided
-fh = open(fname)
-for line in fh:
+file_handle = open(fname)
+for line in file_handle:
     if not line.startswith('From: '):
         continue
     pieces = line.split()
     email = pieces[1]
-    cur.execute('SELECT count FROM Counts WHERE email = ? ', (email,))
+    #domain = re.findall("(?<=@)[^.]+(?=\.)", email)
+    domain = re.findall("(?<=@).+", email)
+    print("domain is : ", domain)
+    cur.execute('SELECT count FROM Counts WHERE org = ? ', (domain))
     row = cur.fetchone()
     if row is None:
-        cur.execute('''INSERT INTO Counts (email, count)
-                VALUES (?, 1)''', (email,))
+        cur.execute('''INSERT INTO Counts (org, count)
+                VALUES (?, 1)''', (domain))
     else:
-        cur.execute('UPDATE Counts SET count = count + 1 WHERE email = ?',
-                    (email,))
-    conn.commit()
+        cur.execute('UPDATE Counts SET count = count + 1 WHERE org = ?',
+                    (domain))
+conn.commit()
 
 # https://www.sqlite.org/lang_select.html
 # select SUM(count), substr(email, instr(email, '@') + 1) as DOMAIN from Counts GROUP BY DOMAIN ORDER BY SUM(count) DESC;
 #sqlstr = 'SELECT email, count FROM Counts ORDER BY count DESC LIMIT 10'
-# https://www.tutorialgateway.org/sql-extract-domain-from-email/
-sqlstr = "SELECT SUM(count), SUBSTR(email, INSTR(email, '@') +1) AS domain FROM Counts GROUP BY domain ORDER BY SUM(count) DESC"
+#sqlstr = "SELECT SUM(count), SUBSTR(email, INSTR(email, '@') +1) AS domain FROM Counts GROUP BY domain ORDER BY SUM(count) DESC"
+sqlstr = 'SELECT org, count FROM Counts ORDER BY count DESC LIMIT 10'
 
 
 for row in cur.execute(sqlstr):
